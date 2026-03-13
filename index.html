@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complaint Tracking System</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; color: #333; }
+    .page { display: none; }
+    .page.active { display: block; }
+    nav { background: #2c3e50; color: white; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+    nav h1 { font-size: 18px; font-weight: bold; }
+    nav div { display: flex; gap: 12px; }
+    nav button { background: transparent; border: 1px solid #aaa; color: white; padding: 6px 14px; cursor: pointer; border-radius: 3px; font-size: 14px; }
+    nav button:hover { background: #34495e; }
+    .container { max-width: 760px; margin: 36px auto; padding: 0 16px; }
+    .card { background: white; padding: 28px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    h2 { font-size: 20px; margin-bottom: 20px; }
+    label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
+    input, select, textarea { width: 100%; padding: 9px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; margin-bottom: 14px; }
+    textarea { resize: vertical; min-height: 80px; }
+    button.btn { background: #2c3e50; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-size: 14px; }
+    button.btn:hover { background: #34495e; }
+    button.btn-sm { padding: 5px 12px; font-size: 13px; }
+    .msg { padding: 10px 14px; border-radius: 4px; margin-bottom: 14px; font-size: 14px; }
+    .msg.error { background: #fde8e8; color: #c0392b; }
+    .msg.success { background: #e8f5e9; color: #27ae60; }
+    .tabs { display: flex; gap: 0; margin-bottom: 20px; }
+    .tab { padding: 9px 18px; cursor: pointer; border: 1px solid #ccc; background: #f9f9f9; font-size: 14px; }
+    .tab:first-child { border-radius: 4px 0 0 4px; }
+    .tab:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+    .tab.active { background: #2c3e50; color: white; border-color: #2c3e50; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f0f0f0; font-weight: bold; }
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 12px; }
+    .badge.Pending { background: #fef3cd; color: #856404; }
+    .badge.In-Progress { background: #cce5ff; color: #004085; }
+    .badge.Resolved { background: #d4edda; color: #155724; }
+    .link { color: #2c3e50; cursor: pointer; text-decoration: underline; font-size: 14px; }
+    .text-center { text-align: center; }
+    .mt { margin-top: 14px; }
+    .log-box { background: #f9f9f9; border: 1px solid #eee; border-radius: 4px; padding: 12px; margin-top: 8px; font-size: 13px; }
+    .log-entry { padding: 4px 0; border-bottom: 1px dotted #ddd; }
+    .log-entry:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>Complaint Tracker</h1>
+  <div id="navLinks">
+    <button onclick="showPage('login')">Login</button>
+    <button onclick="showPage('register')">Register</button>
+  </div>
+</nav>
+
+<div id="page-login" class="page active">
+  <div class="container">
+    <div class="card" style="max-width:420px;margin:60px auto;">
+      <h2>Login</h2>
+      <div id="login-msg"></div>
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="Enter email">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter password">
+      <button class="btn" onclick="login()">Login</button>
+      <p class="mt text-center" style="font-size:14px;">No account? <span class="link" onclick="showPage('register')">Register</span></p>
+    </div>
+  </div>
+</div>
+
+<div id="page-register" class="page">
+  <div class="container">
+    <div class="card" style="max-width:420px;margin:60px auto;">
+      <h2>Register</h2>
+      <div id="register-msg"></div>
+      <label>Name</label>
+      <input type="text" id="reg-name" placeholder="Full name">
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="Email address">
+      <label>Phone Number</label>
+      <input type="text" id="reg-phone" placeholder="Phone number">
+      <label>Password</label>
+      <input type="password" id="reg-password" placeholder="Password">
+      <button class="btn" onclick="register()">Register</button>
+      <p class="mt text-center" style="font-size:14px;">Have an account? <span class="link" onclick="showPage('login')">Login</span></p>
+    </div>
+  </div>
+</div>
+
+<div id="page-dashboard" class="page">
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" id="tab-submit" onclick="switchTab('submit')">Submit Complaint</div>
+      <div class="tab" id="tab-my" onclick="switchTab('my')">My Complaints</div>
+      <div class="tab" id="tab-admin" onclick="switchTab('admin')">Admin View</div>
+    </div>
+
+    <div id="tab-content-submit">
+      <div class="card">
+        <h2>Submit a Complaint</h2>
+        <div id="submit-msg"></div>
+        <label>Title</label>
+        <input type="text" id="c-title" placeholder="Brief title">
+        <label>Category</label>
+        <select id="c-category">
+          <option value="">Select category</option>
+          <option>Network</option>
+          <option>Electricity</option>
+          <option>Water Supply</option>
+          <option>Cleanliness</option>
+          <option>Other</option>
+        </select>
+        <label>Description</label>
+        <textarea id="c-desc" placeholder="Describe your issue in detail"></textarea>
+        <label>Priority Level</label>
+        <select id="c-priority">
+          <option value="">Select priority</option>
+          <option>Low</option>
+          <option>Medium</option>
+          <option>High</option>
+        </select>
+        <button class="btn" onclick="submitComplaint()">Submit</button>
+      </div>
+    </div>
+
+    <div id="tab-content-my" style="display:none;">
+      <div class="card">
+        <h2>My Complaints</h2>
+        <div id="my-complaints"></div>
+      </div>
+    </div>
+
+    <div id="tab-content-admin" style="display:none;">
+      <div class="card">
+        <h2>All Complaints</h2>
+        <div id="admin-complaints"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUser = null;
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+}
+
+function setNav(loggedIn) {
+  const nav = document.getElementById('navLinks');
+  if (loggedIn) {
+    nav.innerHTML = '<span style="color:#ccc;font-size:14px;padding:6px 10px;" id="nav-name"></span><button onclick="logout()">Logout</button>';
+    if (currentUser) document.getElementById('nav-name').textContent = currentUser.name;
+  } else {
+    nav.innerHTML = '<button onclick="showPage(\'login\')">Login</button><button onclick="showPage(\'register\')">Register</button>';
+  }
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.innerHTML = '<div class="msg ' + type + '">' + text + '</div>';
+}
+
+async function register() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const password = document.getElementById('reg-password').value;
+  if (!name || !email || !phone || !password) {
+    return showMsg('register-msg', 'All fields are required.', 'error');
+  }
+  if (!/^\d{10}$/.test(phone)) {
+    return showMsg('register-msg', 'Phone must be 10 digits.', 'error');
+  }
+  const res = await fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, phone, password }) });
+  const data = await res.json();
+  if (data.success) {
+    showMsg('register-msg', 'Registered successfully. Please login.', 'success');
+    setTimeout(() => showPage('login'), 1500);
+  } else {
+    showMsg('register-msg', data.message, 'error');
+  }
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return showMsg('login-msg', 'All fields are required.', 'error');
+  const res = await fetch('/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+  const data = await res.json();
+  if (data.success) {
+    currentUser = data.user;
+    setNav(true);
+    showPage('dashboard');
+    switchTab('submit');
+  } else {
+    showMsg('login-msg', data.message, 'error');
+  }
+}
+
+async function logout() {
+  await fetch('/logout', { method: 'POST' });
+  currentUser = null;
+  setNav(false);
+  showPage('login');
+}
+
+function switchTab(name) {
+  ['submit', 'my', 'admin'].forEach(t => {
+    document.getElementById('tab-' + t).classList.remove('active');
+    document.getElementById('tab-content-' + t).style.display = 'none';
+  });
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('tab-content-' + name).style.display = 'block';
+  if (name === 'my') loadMyComplaints();
+  if (name === 'admin') loadAdminComplaints();
+}
+
+async function submitComplaint() {
+  const title = document.getElementById('c-title').value.trim();
+  const category = document.getElementById('c-category').value;
+  const description = document.getElementById('c-desc').value.trim();
+  const priority = document.getElementById('c-priority').value;
+  if (!title || !category || !description || !priority) {
+    return showMsg('submit-msg', 'All fields are required.', 'error');
+  }
+  const res = await fetch('/complaint', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, category, description, priority }) });
+  const data = await res.json();
+  if (data.success) {
+    showMsg('submit-msg', 'Complaint submitted successfully.', 'success');
+    document.getElementById('c-title').value = '';
+    document.getElementById('c-category').value = '';
+    document.getElementById('c-desc').value = '';
+    document.getElementById('c-priority').value = '';
+  } else {
+    showMsg('submit-msg', data.message, 'error');
+  }
+}
+
+async function loadMyComplaints() {
+  const res = await fetch('/complaints');
+  const data = await res.json();
+  const el = document.getElementById('my-complaints');
+  if (!data.complaints || data.complaints.length === 0) {
+    el.innerHTML = '<p style="font-size:14px;color:#777;">No complaints found.</p>';
+    return;
+  }
+  let html = '<table><thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Description</th></tr></thead><tbody>';
+  data.complaints.forEach(c => {
+    const desc = c.log ? c.log.description : '-';
+    const badge = c.status.replace(' ', '-');
+    html += '<tr><td>' + c.complaint_id + '</td><td>' + c.title + '</td><td>' + c.category + '</td><td>' + c.priority + '</td><td><span class="badge ' + badge + '">' + c.status + '</span></td><td>' + desc + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+async function loadAdminComplaints() {
+  const res = await fetch('/complaints?admin=true');
+  const data = await res.json();
+  const el = document.getElementById('admin-complaints');
+  if (!data.complaints || data.complaints.length === 0) {
+    el.innerHTML = '<p style="font-size:14px;color:#777;">No complaints found.</p>';
+    return;
+  }
+  let html = '<table><thead><tr><th>ID</th><th>User</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Update</th></tr></thead><tbody>';
+  data.complaints.forEach(c => {
+    const badge = c.status.replace(' ', '-');
+    html += '<tr><td>' + c.complaint_id + '</td><td>' + c.user_name + '</td><td>' + c.title + '</td><td>' + c.category + '</td><td>' + c.priority + '</td><td><span class="badge ' + badge + '">' + c.status + '</span></td><td><select id="status-' + c.complaint_id + '" style="width:130px;margin-bottom:0;"><option>Pending</option><option>In Progress</option><option>Resolved</option></select> <button class="btn btn-sm" onclick="updateStatus(' + c.complaint_id + ')">Update</button></td></tr>';
+    if (c.log && c.log.updates && c.log.updates.length > 0) {
+      html += '<tr><td colspan="7"><div class="log-box"><strong>Status Log:</strong><br>';
+      c.log.updates.forEach(u => { html += '<div class="log-entry">' + u.date + ' — ' + u.status + '</div>'; });
+      html += '</div></td></tr>';
+    }
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+  data.complaints.forEach(c => {
+    const sel = document.getElementById('status-' + c.complaint_id);
+    if (sel) sel.value = c.status;
+  });
+}
+
+async function updateStatus(id) {
+  const status = document.getElementById('status-' + id).value;
+  const res = await fetch('/complaint/status', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ complaint_id: id, status }) });
+  const data = await res.json();
+  if (data.success) loadAdminComplaints();
+}
+
+(async function checkSession() {
+  const res = await fetch('/me');
+  const data = await res.json();
+  if (data.loggedIn) {
+    currentUser = data.user;
+    setNav(true);
+    showPage('dashboard');
+  }
+})();
+</script>
+</body>
+</html>
